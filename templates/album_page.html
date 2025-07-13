@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{{ album.name }}</title>
+    <link
+      href="{{ url_for('static', path='/album_page.css') }}"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <main>
+      <div class="album_info_wrapper">
+        <h1>
+          <a href="{{ album.artist }}">{{ album.artist }}</a> - {{ album.name }}
+        </h1>
+        <h3>Track list:</h3>
+        {% for track in album_info.album.tracks.track %}
+        <li>{{track.name}}</li>
+        {% endfor %}
+      </div>
+      <div class="art_cover_wrapper">
+        <img src="{{ album.cover_url }}" alt="{{ album.name }}" />
+      </div>
+    </main>
+  </body>
+</html>

@@ -2,24 +2,48 @@ import os
 from typing import Optional
 from dotenv import load_dotenv
 import requests
+from sqlalchemy import select
+from sqlalchemy.orm import Session
+from database import engine
+from models import Album
 
 load_dotenv(override=True)
 
 API_KEY = os.getenv("LAST_FM_API_KEY")
 BASE_URL = os.getenv("BASE_LAST_FM_URL")
 
-def get_album_cover(album_name: str):
+
+def get_albums():
+    with Session(engine) as session:
+        stmt = select(Album)
+        albums = session.scalars(stmt).all()
+        return albums
+
+
+def get_one_album(id):
+    with Session(engine) as session:
+        stmt = select(Album).where(Album.id == id)
+        album = session.scalars(stmt).first()
+
+        return album
+
+
+def get_album_cover(album_name: str, country: str = "us"):
     params = {
-        "entity": "song",
+        "term": album_name,
+        "entity": "album",
         "limit": 1,
-        "term": album_name
+        "country": country
     }
 
-    res = requests.get("https://itunes.apple.com/search", params=params).json()
-    cover_url = res["results"][0]["artworkUrl100"] if res.get("results") else ""
-    cover_url = cover_url.replace("100x100bb.jpg", "1000x1000bb.jpg")
+    res = requests.get("https://itunes.apple.com/search", params=params)
+    data = res.json()
 
-    return cover_url
+    if data.get("results"):
+        cover_url = data["results"][0]["artworkUrl100"]
+        return cover_url.replace("100x100bb.jpg", "1000x1000bb.jpg")
+    return ""
+
 
 def get_album_info(artist: str, album: str):
 

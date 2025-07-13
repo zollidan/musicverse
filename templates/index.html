@@ -7,10 +7,9 @@
     <link href="{{ url_for('static', path='/styles.css') }}" rel="stylesheet" />
   </head>
   <body>
-    <h1>hello from musicverse</h1>
     <ul>
       {% for album in albums %}
-      <li>{{ album.name }}</li>
+      <li><a href="/albums/{{ album.id }}">{{ album.name }}</a></li>
       {% endfor %}
     </ul>
   </body>
