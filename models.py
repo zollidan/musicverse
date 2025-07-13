@@ -17,6 +17,7 @@ class Album(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str] = mapped_column(String(125))
     artist: Mapped[str] = mapped_column(String(80))
+    cover_url: Mapped[str] = mapped_column(String(255))
 
     def __repr__(self) -> str:
-        return f"User(id={self.id!r}, name={self.name!r}, fullname={self.fullname!r})"
+        return f"Album(name={self.name!r}, artist={self.artist!r}, cover_url={self.cover_url!r})"
