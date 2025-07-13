@@ -17,6 +17,15 @@ app = FastAPI()
 app.mount("/static", StaticFiles(directory="static"), name="static")
 templates = Jinja2Templates(directory="templates")
 
+@app.get("/", response_class=HTMLResponse)
+async def index_page(request: Request):
+    
+    albums = get_albums()
+    
+    return templates.TemplateResponse(
+        request=request, name="index.html", context={"albums": albums}
+    )
+    
 
 @app.get("/api/albums", response_model=list[AlbumSchema])
 def get_albums():
