@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Загрузчик обложек альбомов в высоком разрешении</title>
+    <!-- Подключение Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      /* Пользовательские стили для шрифта Inter */
+      body {
+        font-family: "Inter", sans-serif;
+      }
+      /* Скрываем элемент по умолчанию */
+      .hidden {
+        display: none;
+      }
+    </style>
+  </head>
+  <body
+    class="bg-gradient-to-br from-purple-600 to-indigo-800 min-h-screen flex items-center justify-center p-4"
+  >
+    <div
+      class="bg-white p-8 rounded-xl shadow-2xl w-full max-w-md transform transition-all duration-300 hover:scale-105"
+    >
+      <h1 class="text-3xl font-bold text-center text-gray-800 mb-6">
+        Загрузчик обложек альбомов
+      </h1>
+
+      <div class="mb-4">
+        <label
+          for="albumInput"
+          class="block text-gray-700 text-sm font-semibold mb-2"
+          >Название альбома:</label
+        >
+        <input
+          type="text"
+          id="albumInput"
+          placeholder="Введите название альбома"
+          class="shadow-sm appearance-none border rounded-lg w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition duration-200"
+        />
+      </div>
+
+      <div class="mb-6">
+        <label
+          for="artistInput"
+          class="block text-gray-700 text-sm font-semibold mb-2"
+          >Исполнитель:</label
+        >
+        <input
+          type="text"
+          id="artistInput"
+          placeholder="Введите имя исполнителя"
+          class="shadow-sm appearance-none border rounded-lg w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition duration-200"
+        />
+      </div>
+
+      <button
+        id="searchButton"
+        class="w-full bg-purple-700 hover:bg-purple-800 text-white font-bold py-3 px-4 rounded-lg focus:outline-none focus:shadow-outline transition duration-300 ease-in-out transform hover:-translate-y-1 hover:scale-102 shadow-md"
+      >
+        Найти обложку
+      </button>
+
+      <div id="loadingIndicator" class="hidden text-center mt-6 text-gray-600">
+        <div
+          class="animate-spin inline-block w-8 h-8 border-4 border-purple-500 border-t-transparent rounded-full"
+          role="status"
+        >
+          <span class="sr-only">Загрузка...</span>
+        </div>
+        <p class="mt-2">Загрузка обложки...</p>
+      </div>
+
+      <div
+        id="errorMessage"
+        class="hidden bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg relative mt-6"
+        role="alert"
+      >
+        <strong class="font-bold">Ошибка!</strong>
+        <span class="block sm:inline" id="errorText"
+          >Что-то пошло не так. Пожалуйста, попробуйте еще раз.</span
+        >
+      </div>
+
+      <div id="coverDisplay" class="hidden mt-8 text-center">
+        <h2 class="text-xl font-semibold text-gray-800 mb-4">
+          Найденная обложка:
+        </h2>
+        <img
+          id="albumCover"
+          src="https://placehold.co/300x300/E0E0E0/333333?text=Нет+изображения"
+          alt="Обложка альбома"
+          class="w-full h-auto rounded-lg shadow-lg mx-auto max-w-xs object-cover"
+          onerror="this.src='https://placehold.co/300x300/E0E0E0/333333?text=Ошибка+загрузки';"
+        />
+        <a
+          id="downloadLink"
+          href="#"
+          download="album_cover.jpg"
+          class="hidden mt-6 inline-block bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg transition duration-300 ease-in-out transform hover:-translate-y-0.5 shadow-md"
+        >
+          Скачать обложку
+        </a>
+      </div>
+    </div>
+
+    <script>
+      // Получаем ссылки на элементы DOM
+      const albumInput = document.getElementById("albumInput");
+      const artistInput = document.getElementById("artistInput");
+      const searchButton = document.getElementById("searchButton");
+      const loadingIndicator = document.getElementById("loadingIndicator");
+      const errorMessage = document.getElementById("errorMessage");
+      const errorText = document.getElementById("errorText");
+      const coverDisplay = document.getElementById("coverDisplay");
+      const albumCover = document.getElementById("albumCover");
+      const downloadLink = document.getElementById("downloadLink");
+
+      // Функция для отображения сообщения об ошибке
+      function showErrorMessage(message) {
+        errorText.textContent = message;
+        errorMessage.classList.remove("hidden");
+      }
+
+      // Функция для скрытия сообщения об ошибке
+      function hideErrorMessage() {
+        errorMessage.classList.add("hidden");
+      }
+
+      // Функция для отображения индикатора загрузки
+      function showLoadingIndicator() {
+        loadingIndicator.classList.remove("hidden");
+        searchButton.disabled = true; // Отключаем кнопку во время загрузки
+        searchButton.classList.add("opacity-50", "cursor-not-allowed");
+      }
+
+      // Функция для скрытия индикатора загрузки
+      function hideLoadingIndicator() {
+        loadingIndicator.classList.add("hidden");
+        searchButton.disabled = false; // Включаем кнопку
+        searchButton.classList.remove("opacity-50", "cursor-not-allowed");
+      }
+
+      // Обработчик события для кнопки поиска
+      searchButton.addEventListener("click", async () => {
+        const album = albumInput.value.trim();
+        const artist = artistInput.value.trim();
+
+        if (!album || !artist) {
+          showErrorMessage(
+            "Пожалуйста, введите название альбома и имя исполнителя."
+          );
+          coverDisplay.classList.add("hidden");
+          return;
+        }
+
+        hideErrorMessage();
+        showLoadingIndicator();
+        coverDisplay.classList.add("hidden");
+
+        try {
+          const response = await fetch(
+            `/api/albums/highrescover?album=${encodeURIComponent(
+              album
+            )}&artist=${encodeURIComponent(artist)}`
+          );
+
+          if (!response.ok) {
+            throw new Error(`Ошибка HTTP: ${response.status}`);
+          }
+
+          const data = await response.json();
+          const coverUrl = data.cover_url;
+
+          if (
+            coverUrl &&
+            coverUrl !==
+              "https://placehold.co/300x300/E0E0E0/333333?text=Нет+изображения"
+          ) {
+            albumCover.src = coverUrl;
+            downloadLink.href = coverUrl;
+            downloadLink.classList.remove("hidden");
+            coverDisplay.classList.remove("hidden");
+          } else {
+            albumCover.src =
+              "https://placehold.co/300x300/E0E0E0/333333?text=Обложка+не+найдена";
+            downloadLink.classList.add("hidden");
+            coverDisplay.classList.remove("hidden");
+            showErrorMessage(
+              "Обложка для этого альбома/исполнителя не найдена."
+            );
+          }
+        } catch (error) {
+          console.error("Ошибка при получении обложки:", error);
+          showErrorMessage(
+            "Не удалось получить обложку. Проверьте правильность ввода или попробуйте позже."
+          );
+          albumCover.src =
+            "https://placehold.co/300x300/E0E0E0/333333?text=Ошибка+загрузки";
+          downloadLink.classList.add("hidden");
+          coverDisplay.classList.remove("hidden");
+        } finally {
+          hideLoadingIndicator();
+        }
+      });
+    </script>
+  </body>
+</html>

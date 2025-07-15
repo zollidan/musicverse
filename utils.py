@@ -41,7 +41,7 @@ def get_album_cover(album_name: str, country: str = "us"):
 
     if data.get("results"):
         cover_url = data["results"][0]["artworkUrl100"]
-        return cover_url.replace("100x100bb.jpg", "1000x1000bb.jpg")
+        return cover_url.replace("100x100bb.jpg", "3000x3000.jpg")
     return ""
 
 

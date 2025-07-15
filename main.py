@@ -28,6 +28,18 @@ async def index_page(request: Request):
     )
 
 
+@app.get("/albums/highrescover")
+async def highres_cover_dwnld_page(request: Request):
+    return templates.TemplateResponse(request, name="highres_cover_page.html")
+
+
+@app.get("/api/albums/highrescover")
+def get_highres_cover(album: str, artist: str):
+    cover_url = get_album_cover(album + " " + artist)
+
+    return {"cover_url": cover_url}
+
+
 @app.get("/albums/{id}", response_class=HTMLResponse)
 async def album_page(request: Request, id: str):
 
